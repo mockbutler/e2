@@ -28,6 +28,12 @@ struct line *line_alloc(size_t cap)
 	return l;
 }
 
+void ln_grow_cap(struct line *ln, size_t reqcap)
+{
+	ln->text = realloc(ln->text, ln->cap + reqcap);
+	ln->cap += reqcap;
+}
+
 struct line *line_from_str(const char *s)
 {
 	long len = strlen(s);
@@ -121,16 +127,22 @@ void ln_split(struct line *src, int where, struct line **front,
 	}
 }
 
-void ln_ins_str(struct line *l, unsigned where, const char *s, unsigned len)
+void ln_ins_str_at(struct line *l, unsigned where, const char *s, unsigned len)
 {
 	ASSERT(where <= l->len);
 
-	if (l->len == 0 && l->cap >= len) {
-		/* insert into an empty line with sufficient capacity. */
-		memcpy(l->text, s, len);
-		l->len = len;
+	if (len == 0) {
 		return;
 	}
+	if (ln_avail(l) < len) {
+		ln_grow_cap(l, len);
+	}
 
-	ASSERT(0 && "NOT IMPL");
+	size_t tlen = l->len - where;
+	if (tlen > 0) { 
+		size_t toff = where + len;
+		memmove(l->text + toff, l->text + where, tlen);
+	}
+	memmove(l->text + where, s, len);
+	l->len += len;
 }

@@ -15,9 +15,14 @@ struct line {
 	struct line *next;
 };
 
-bool ln_empty(struct line *ln)
+static inline bool ln_empty(struct line *ln)
 {
-	return (ln)->len == 0;
+	return ln->len == 0;
+}
+
+static inline bool ln_avail(struct line *ln)
+{
+	return ln-> cap - ln->len;
 }
 
 struct line *line_alloc(size_t cap);
@@ -27,6 +32,6 @@ void ln_del_curr(void);
 
 struct line *ln_copy(struct line *l);
 struct line *ln_partial_copy(struct line *l, int start, int end);
-void ln_ins_str(struct line *l, unsigned where, const char *s, unsigned len);
+void ln_ins_str_at(struct line *l, unsigned where, const char *s, unsigned len);
 
 #endif

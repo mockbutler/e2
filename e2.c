@@ -1044,8 +1044,9 @@ int cmd_paste(void)
 	 */
 
 	if (g_cutting.linecount == 1) {
-		ln_ins_str(curr_buf->ln, curr_buf->cursor.col,
+		ln_ins_str_at(curr_buf->ln, curr_buf->cursor.col,
 			   g_cutting.text->text, g_cutting.text->len);
+		curr_buf->cursor.col += g_cutting.text->len;
 		cur_move(0, g_cutting.text->len);
 		goto RTN;
 	}
