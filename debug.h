@@ -1,10 +1,5 @@
 /* Copyright (c) 2006 Marc Butler.
  *
- * Still too much to do to make this a working editor!
- * No horizontal scrolling! 
- * Flags are not used in the edit buffer structure.
- * Backspace at the start of a line is still broken.
- *
  */
 #ifndef DEBUG_HDR
 #define DEBUG_HDR

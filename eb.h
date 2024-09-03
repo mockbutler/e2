@@ -2,7 +2,7 @@
 #define EDITBUF_H
 
 #include "e2.h"
-#include "pt.h"
+#include "pos.h"
 
 /* Edit buffer status flags. */
 enum {
@@ -26,11 +26,11 @@ struct editbuf {
 	char flags;		/* State flags. */
 	char fmt;		/* Line ending format. */
 
-	struct point mark;	/* position of the mark anchor */
+	struct pos mark;	/* position of the mark anchor */
 
 	/* Current cursor location. */
 	struct line *ln;	/* Current line. */
-	struct point cursor;	/* position in buffer of the user's
+	struct pos cursor;	/* position in buffer of the user's
 				   cursor. known as the "point". */
 
 	/* mlb: Editor buffers are to be stored in a circular

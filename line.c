@@ -68,7 +68,6 @@ void ln_del_curr(void)
 			todie->next->prev = curr_line;
 		line_free(todie);
 		curr_buf->cursor.line--;
-		cur_move(-1, 0);
 	} else if (curr_line->next) {
 		curr_line = curr_line->next;
 		curr_line->next = todie->prev;

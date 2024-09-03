@@ -31,7 +31,7 @@ int cur_posx(int x)
 	return 0;
 }
 
-void cur_getpos(struct point *p)
+void cur_getpos(struct pos *p)
 {
 	int sy, sx;
 	getyx(editwin, sy, sx);
@@ -39,7 +39,7 @@ void cur_getpos(struct point *p)
 	p->col = sy;
 }
 
-void cur_setpos(const struct point *pt)
+void cur_setpos(const struct pos *pt)
 {
 	/* todo: need to check for horiz. and vert. scrolling here! */
 	wmove(editwin, pt->col, pt->line);

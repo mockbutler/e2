@@ -537,21 +537,7 @@ void save_editbuf(struct editbuf *eb)
 
 int backspace()
 {
-	if (eb_at_bol(curr_buf)) {
-		if (curr_buf->ln == curr_buf->top)
-			return 1;
-
-		if (ln_empty(curr_line)) {
-			unsigned c = curr_line->prev->len;
-			ln_del_curr();
-			cur_posx(c);
-		} else {
-			size_t len = curr_line->prev->len;
-			join_lines(curr_line->prev, curr_line);
-			cur_move(-1, 0);
-			cur_posx(len);
-		}
-	} else {
+	if (curr_buf->cursor.col > 0) {
 		move_left();
 		wdelch(editwin);
 		if (curr_buf->cursor.col < (curr_line->len - 1)) {
@@ -560,11 +546,23 @@ int backspace()
 			char *from = to + 1;
 			size_t len =
 			    curr_line->len - (curr_buf->cursor.col + 1);
-			memcpy(to, from, len);
+			memmove(to, from, len);
 		} else {
 			curr_line->text[curr_buf->cursor.col] = 0;
 		}
 		curr_line->len--;
+	} else if (!eb_at_tob(curr_buf)) {
+		if (ln_empty(curr_line)) {
+			ln_del_curr();
+			curr_buf->cursor.col = curr_buf->ln->len;
+			cur_move(-1, 0);
+			cur_posx(curr_line->len);
+		} else {
+			size_t len = curr_line->prev->len;
+			join_lines(curr_line->prev, curr_line);
+			cur_move(-1, 0);
+			cur_posx(len);
+		}
 	}
 
 	redraw();
@@ -957,16 +955,16 @@ int cmd_copy(void)
 {
 	t_called();
 	if (!eb_rgn_marked(curr_buf)
-	    || pt_eq(&curr_buf->mark, &curr_buf->cursor))
+	    || pos_eq(&curr_buf->mark, &curr_buf->cursor))
 		return 1;	/* nothing to copy */
 
 	/* set up the start and of the region: so that the start is
 	   guaranteed to occur before the end in the buffer. */
-	struct point sreg, ereg;
-	pt_copy(&sreg, &curr_buf->mark);
-	pt_copy(&ereg, &curr_buf->cursor);
-	if (pt_lt(&ereg, &sreg)) {
-		pt_swap(&ereg, &sreg);
+	struct pos sreg, ereg;
+	pos_copy(&sreg, &curr_buf->mark);
+	pos_copy(&ereg, &curr_buf->cursor);
+	if (pos_lt(&ereg, &sreg)) {
+		pos_swap(&ereg, &sreg);
 	}
 
 	/* todo: free any pre-existing cutting. (eventually should be push

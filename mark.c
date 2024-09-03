@@ -11,7 +11,7 @@
 
 int mrk_set_cmd(void)
 {
-	pt_assign(&curr_buf->mark, &curr_buf->cursor);
+	pos_assign(&curr_buf->mark, &curr_buf->cursor);
 	curr_buf->flags |= EB_MARKSET;
 	return 1;
 }
@@ -67,7 +67,7 @@ void draw_marked_region(void)
 	if ((curr_buf->flags & EB_MARKSET) == 0)
 		return;
 
-	if (pt_eq(&curr_buf->mark, &curr_buf->cursor))
+	if (pos_eq(&curr_buf->mark, &curr_buf->cursor))
 		return;
 
 	/* handle edge cases */
@@ -89,15 +89,15 @@ void draw_marked_region(void)
 
 	/* cursor and mark are in the same postion so nothing to
 	   highlight */
-	if (pt_eq(&curr_buf->mark, &curr_buf->cursor))
+	if (pos_eq(&curr_buf->mark, &curr_buf->cursor))
 		return;
 
 	/* find the start and end of the region to be hilighted */
-	struct point mstart, mend;
-	pt_copy(&mstart, &curr_buf->mark);
-	pt_copy(&mend, &curr_buf->cursor);
-	if (pt_lt(&mend, &mstart)) {
-		pt_swap(&mstart, &mend);
+	struct pos mstart, mend;
+	pos_copy(&mstart, &curr_buf->mark);
+	pos_copy(&mend, &curr_buf->cursor);
+	if (pos_lt(&mend, &mstart)) {
+		pos_swap(&mstart, &mend);
 	}
 
 	/* just highlight a sub-part of the current line */

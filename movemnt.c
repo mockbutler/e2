@@ -8,7 +8,7 @@
 
 #include "movemnt.h"
 
-static void screenpos(struct point *p)
+static void screenpos(struct pos *p)
 {
 	int sx, sy;
 	getyx(editwin, sy, sx);
@@ -19,7 +19,7 @@ static void screenpos(struct point *p)
 
 int move_up(void)
 {
-	struct point spos;
+	struct pos spos;
 	if (eb_at_tob(curr_buf)) {
 		return 1;
 	}
@@ -42,7 +42,7 @@ int move_up(void)
 
 int move_left(void)
 {
-	struct point spos;
+	struct pos spos;
 
 	if (eb_at_bol(curr_buf) && eb_at_tob(curr_buf)) {
 		flash();
@@ -125,7 +125,7 @@ int move_down()
 
 int move_eol()
 {
-	struct point spos;
+	struct pos spos;
 	screenpos(&spos);
 
 	if (curr_buf->cursor.col <= curr_line->len) {
@@ -148,7 +148,7 @@ int move_bol()
 	if (curr_buf->cursor.col == 0)
 		return -1;
 	else {
-		struct point spos;
+		struct pos spos;
 		screenpos(&spos);
 		if (curr_buf->cursor.col == spos.col) {
 			wmove(editwin, spos.line, 0);
