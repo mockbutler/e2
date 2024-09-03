@@ -31,8 +31,8 @@
 	} while (0)
 
 #define t_var2i(v1, v2) do {						\
-		fprintf(dribble, "%s:%d: VAR %s = %d, VAR %s = %d\n", \
-			__FUNCTION__, __LINE__, #v1, v1, #v2, v2); \
+		fprintf(dribble, "%s:%d: VAR %s = %li, VAR %s = %li\n", \
+			__FUNCTION__, __LINE__, #v1, (long)v1, #v2, (long)v2); \
 	} while (0)
 
 #else

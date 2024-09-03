@@ -5,8 +5,8 @@
 /* points are used to represent positions in the editing buffer. */
 
 struct point {
-	size_t line;
-	size_t col;
+	long line;
+	long col;
 };
 
 #define pt_copy(pdst, psrc) memcpy(pdst, psrc, sizeof (struct point))

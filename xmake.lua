@@ -1,0 +1,31 @@
+add_rules("mode.debug", "mode.release")
+set_languages("c11")
+add_links("ncurses")
+add_requires("ncurses")
+add_defines("ENABLE_DRIBBLE")
+
+target("libe2")
+    set_kind("static")
+    add_files("movemnt.c")
+    add_files("line.c")
+    add_files("pt.c")
+    add_files("search.c")
+    add_files("mark.c")
+    add_files("cursor.c")
+    add_files("eb.c")
+
+target("e2")
+    set_kind("binary")
+    add_files("e2.c")
+    add_deps("libe2")
+
+target("list")
+    set_kind("binary")
+    add_files("list.c")
+    add_deps("libe2")
+
+target("keyscan")
+    set_kind("binary")
+    add_files("keyscan.c")
+    add_deps("libe2")
+

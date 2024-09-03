@@ -7,15 +7,18 @@ struct line {
 	 * is stored. */
 
 	char *text;		/* ASCII; not '\0' terminated. */
-	size_t len;		/* Length in bytes. */
-	size_t cap;		/* Capacity in bytes. */
+	long len;		/* Length in bytes. */
+	long cap;		/* Capacity in bytes. */
 
 	/* Lines are stored in doubly-linked lists in edit buffers. */
 	struct line *prev;
 	struct line *next;
 };
 
-#define ln_empty(ln) ((ln)->len == 0)
+bool ln_empty(struct line *ln)
+{
+	return (ln)->len == 0;
+}
 
 struct line *line_alloc(size_t cap);
 void line_free(struct line *l);

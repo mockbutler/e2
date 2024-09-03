@@ -18,11 +18,6 @@
 extern struct editbuf *curr_buf;
 #define curr_line (curr_buf->ln)
 
-#define AT_BOL(eb) ((eb)->cursor.col == 0)
-#define AT_EOL(eb) ((eb)->cursor.col == (eb)->ln->len)
-#define AT_TOB(eb) ((eb)->ln == (eb)->top)
-#define AT_BOB(eb) ((eb)->ln == (eb)->bot)
-
 enum {
 	MOD_NONE,
 	MOD_ESC,

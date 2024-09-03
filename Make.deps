@@ -1,9 +1,0 @@
-# Auto generated: run makedeps.py
-cursor.c: cursor.h debug.h e2.h
-mark.c: debug.h e2.h eb.h line.h mark.h
-movemnt.c: debug.h e2.h eb.h line.h movemnt.h
-line.c: cursor.h debug.h e2.h eb.h line.h
-pt.c: pt.h
-eb.c: debug.h e2.h eb.h line.h
-search.c: cursor.h debug.h e2.h eb.h line.h search.h
-e2.c: cursor.h debug.h e2.h eb.h keycodes.h line.h mark.h movemnt.h search.h

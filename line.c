@@ -30,8 +30,8 @@ struct line *line_alloc(size_t cap)
 
 struct line *line_from_str(const char *s)
 {
-	size_t len = strlen(s);
-	size_t cap = max(COLS, len + 1);
+	long len = strlen(s);
+	long cap = max(COLS, len + 1);
 
 	struct line *ln = line_alloc(cap);
 

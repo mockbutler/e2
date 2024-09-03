@@ -16,7 +16,7 @@ struct editbuf {
 	 * newly created bufers may be "unassociated" until they are saved.
 	 */
 
-	size_t lines;		/* Number of lines in buffer. */
+	long lines;		/* Number of lines in buffer. */
 
 	struct line *top;	/* Top line. */
 	struct line *bot;	/* Bottom line. */

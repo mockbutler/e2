@@ -4,6 +4,7 @@
 #include "line.h"
 #include "eb.h"
 #include "debug.h"
+#include "editing.h"
 
 #include "movemnt.h"
 
@@ -19,7 +20,7 @@ static void screenpos(struct point *p)
 int move_up(void)
 {
 	struct point spos;
-	if (AT_TOB(curr_buf)) {
+	if (eb_at_tob(curr_buf)) {
 		return 1;
 	}
 
@@ -43,7 +44,7 @@ int move_left(void)
 {
 	struct point spos;
 
-	if (AT_BOL(curr_buf) && AT_TOB(curr_buf)) {
+	if (eb_at_bol(curr_buf) && eb_at_tob(curr_buf)) {
 		flash();
 		return -1;
 	}
@@ -53,10 +54,10 @@ int move_left(void)
 		wmove(editwin, spos.line, spos.col - 1);
 		curr_buf->cursor.col--;
 	} else {
-		if (AT_BOL(curr_buf)) {
+		if (eb_at_bol(curr_buf)) {
 			struct line *l;
 			l = curr_buf->ln->prev;
-			wmove(editwin, spos.line - 1, min((size_t)(COLS - 1), l->len - 1));
+			wmove(editwin, spos.line - 1, min((COLS - 1), l->len - 1));
 			curr_buf->ln = l;
 			curr_buf->cursor.col = l->len - 1;
 			curr_buf->cursor.line--;
@@ -72,7 +73,7 @@ int move_right(void)
 {
 	int sx, sy;
 
-	if (AT_EOL(curr_buf) && AT_BOB(curr_buf)) {
+	if (eb_at_eol(curr_buf) && eb_at_bob(curr_buf)) {
 		flash();
 		return -1;
 	}
@@ -81,7 +82,7 @@ int move_right(void)
 	if (sx == COLS) {
 		/* trigger horizontal scroll right */
 	} else {
-		if (!AT_EOL(curr_buf)) {
+		if (!eb_at_eol(curr_buf)) {
 			wmove(editwin, sy, sx + 1);
 			curr_buf->cursor.col++;
 		} else {
@@ -99,7 +100,7 @@ int move_right(void)
 
 int move_down()
 {
-	if (AT_BOB(curr_buf)) {
+	if (eb_at_bob(curr_buf)) {
 		return -1;
 	}
 

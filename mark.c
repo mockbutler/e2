@@ -24,7 +24,7 @@ static void draw_whole_line_marked(int sy, struct line *ln)
 }
 
 static void draw_part_line_marked(int sy, struct line *ln,
-				  int startcol, int endcol)
+				  long startcol, long endcol)
 {
 	int len;
 
@@ -110,8 +110,8 @@ void draw_marked_region(void)
 	}
 
 	struct line *ln;
-	unsigned long sline;
-	unsigned long lnum;
+	long sline;
+	long lnum;
 	ln = eb_find_first_visible_line(curr_buf);
 	lnum = curr_buf->cursor.line - sy;
 	werase(editwin);

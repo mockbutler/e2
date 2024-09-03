@@ -15,6 +15,7 @@
 #include "mark.h"
 #include "movemnt.h"
 #include "search.h"
+#include "editing.h"
 
 #include "e2.h"
 
@@ -58,14 +59,14 @@ void append_line(struct editbuf *eb, struct line *ln);
 void join_lines(struct line *above, struct line *below);
 void strpadleft(char *s, char pad, unsigned cnt);
 void kill_line(int i);
-int only_whitespace(size_t from, size_t to, struct line *ln);
+int only_whitespace(long from, long to, struct line *ln);
 void showmsg(const char *fmt, ...);
 int plain_insert(void);
 void setup_keymaps(void);
 int exit_editor(void);
 
 int load_file(void);
-int minibuf_edit(const char *prompt, char *resp, unsigned respmax);
+int minibuf_edit(const char *prompt, char *resp, long respmax);
 int linekill(void);
 void buf_stk_ins(struct editbuf *eb);
 void buf_stk_next(void);
@@ -99,7 +100,7 @@ int newline(void)
 int linekill(void)
 {
 	if (curr_line->len >= 0) {
-		if (AT_BOL(curr_buf) ||
+		if (eb_at_bol(curr_buf) ||
 		    only_whitespace(0, curr_buf->cursor.col, curr_buf->ln))
 			kill_line(1);
 		else
@@ -124,13 +125,13 @@ int kbd_quit(void)
 	return 1;
 }
 
-inline int set_ctrlx_mod(void)
+int set_ctrlx_mod(void)
 {
 	mod |= MOD_CTRLX;
 	return 0;
 }
 
-inline int set_ctrlc_mod(void)
+int set_ctrlc_mod(void)
 {
 	t_print("ctrl-c modifer!\n");
 	mod |= MOD_CTRLC;
@@ -255,10 +256,10 @@ void status_update(struct editbuf *eb)
 {
 	char *path = (eb->file_path == NULL) ? "*unnamed*" : eb->file_path;
 	char tmp[64];
-	size_t len;
+	long len;
 
 	len =
-	    sprintf(tmp, "e2 %d:%d ", eb->cursor.line + 1, eb->cursor.col + 1);
+	    sprintf(tmp, "e2 %li:%li ", eb->cursor.line + 1, eb->cursor.col + 1);
 	if (len < 12) {
 		strpadleft(tmp, ' ', 12 - len);
 	}
@@ -288,7 +289,7 @@ void setup_keymaps()
 	static const char ualpha[] = "ABCDEFGHIJKLMNOPQRSTUVXYWZ";
 	static const char digits[] = "0123456789";
 
-	int i;
+	size_t i;
 
 	/* initalize key mappings to safety default */
 	for (i = 0; i < ACTION_MAP_SIZE; i++) {
@@ -499,7 +500,7 @@ void add_line()
 		curr_line->len -= tlen;
 	}
 
-	if (AT_BOB(curr_buf)) {
+	if (eb_at_bob(curr_buf)) {
 		curr_buf->bot = newln;
 	}
 
@@ -536,7 +537,7 @@ void save_editbuf(struct editbuf *eb)
 
 int backspace()
 {
-	if (AT_BOL(curr_buf)) {
+	if (eb_at_bol(curr_buf)) {
 		if (curr_buf->ln == curr_buf->top)
 			return 1;
 
@@ -699,7 +700,7 @@ void append_line(struct editbuf *eb, struct line *ln)
 void join_lines(struct line *above, struct line *below)
 {
 	/* copy any text in the below line to the above line */
-	size_t space = above->cap - above->len;
+	long space = above->cap - above->len;
 	if (space < below->len) {
 		size_t newcap = below->len - space;
 		above->text = realloc(above->text, newcap);
@@ -743,10 +744,10 @@ void kill_line(int whole)
 	}
 }
 
-int only_whitespace(size_t from, size_t to, struct line *ln)
+int only_whitespace(long from, long to, struct line *ln)
 {
-	size_t i;
-	t_print("only_whitespace() from = %u to = %u len = %u\n", from, to,
+	long i;
+	t_print("only_whitespace() from = %li to = %li len = %li\n", from, to,
 		ln->len);
 	ASSERT(from < ln->len);
 	ASSERT(to < ln->len);
@@ -815,9 +816,11 @@ int load_file(void)
 	return -1;
 }
 
-int minibuf_edit(const char *prompt, char *resp, unsigned respmax)
+int minibuf_edit(const char *prompt, char *resp, long respmax)
 {
 	int key, i, sx, sy;
+
+	(void)respmax;
 
 	werase(cmdwin);
 	wmove(cmdwin, 0, 0);
@@ -930,10 +933,10 @@ int page_up(void)
 
 	t_var2i(cnt, max);
 	if (cnt <= max) {
-		int sx, sy;
+		long sx, sy;
 		getyx(editwin, sy, sx);
-		t_print("cursor jumped: %d,%d -> %d,%d\n",
-			sy, sx, 0, min(sx, ln->len));
+		t_print("cursor jumped: %li,%li -> %li,%li\n",
+			sy, sx, 0L, min(sx, ln->len));
 		cur_pos(0, min(sx, ln->len));
 	}
 	redraw();
@@ -1015,7 +1018,7 @@ int cmd_copy(void)
 	currln = g_cutting.text;
 	for (i = 0; currln != NULL; i++) {
 		if (currln->len > 0)
-			t_print("%d: '%*s'\n", i, currln->len, currln->text);
+			t_print("%d: '%*s'\n", i, (int)currln->len, currln->text);
 		else
 			t_print("%d: ''\n", i);
 		currln = currln->next;
