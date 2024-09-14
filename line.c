@@ -41,7 +41,7 @@ struct line *line_from_str(const char *s)
 
 	struct line *ln = line_alloc(cap);
 
-	memcpy(ln->text, s, len);
+	memmove(ln->text, s, len);
 	ln->text[len] = 0;
 	ln->len = len;
 	ln->next = ln->prev = NULL;
@@ -84,7 +84,7 @@ struct line *ln_copy(struct line *l)
 {
 	ASSERT(l);
 	struct line *lcopy = line_alloc(l->len);
-	memcpy(lcopy->text, l->text, l->len);
+	memmove(lcopy->text, l->text, l->len);
 	lcopy->len = l->len;
 	return lcopy;
 }
@@ -98,7 +98,7 @@ struct line *ln_partial_copy(struct line *l, int start, int end)
 
 	struct line *lcopy = line_alloc(end - start);
 	ASSERT(lcopy);
-	memcpy(lcopy->text, &l->text[start], end - start);
+	memmove(lcopy->text, &l->text[start], end - start);
 	lcopy->len = end - start;
 
 	return lcopy;
@@ -114,14 +114,14 @@ void ln_split(struct line *src, int where, struct line **front,
 
 	*front = line_alloc(where);
 	if (where > 0) {
-		memcpy((*front)->text, src->text, where);
+		memmove((*front)->text, src->text, where);
 		(*front)->len = where;
 	}
 
 	int len = src->len - where;
 	*back = line_alloc(len);
 	if (len > 0) {
-		memcpy((*back)->text, &src->text[where], len);
+		memmove((*back)->text, &src->text[where], len);
 		(*back)->len = len;
 	}
 }

@@ -30,15 +30,15 @@ int pos_lt(struct pos *p1, struct pos *p2)
 void pos_swap(struct pos *p1, struct pos *p2)
 {
 	struct pos tmp;
-	memcpy(&tmp, p1, sizeof(struct pos));
-	memcpy(p1, p2, sizeof(struct pos));
-	memcpy(p2, &tmp, sizeof(struct pos));
+	memmove(&tmp, p1, sizeof(struct pos));
+	memmove(p1, p2, sizeof(struct pos));
+	memmove(p2, &tmp, sizeof(struct pos));
 }
 
 struct pos *pos_dup(const struct pos *p)
 {
 	struct pos *ptnew;
 	ptnew = malloc(sizeof(struct pos));
-	memcpy(ptnew, p, sizeof(struct pos));
+	memmove(ptnew, p, sizeof(struct pos));
 	return ptnew;
 }

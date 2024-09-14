@@ -377,7 +377,7 @@ void insert(struct editbuf *eb, int ch)
 	if (eb->cursor.col < l->len) {
 		size_t len = l->len - eb->cursor.col;
 		/* memcpy must accomodate overlapping moves */
-		memcpy(&l->text[eb->cursor.col + 1], &l->text[eb->cursor.col],
+		memmove(&l->text[eb->cursor.col + 1], &l->text[eb->cursor.col],
 		       len);
 		l->text[eb->cursor.col] = (char)ch;
 	} else {
@@ -495,7 +495,7 @@ void add_line()
 	if (curr_buf->cursor.col < curr_line->len) {
 		size_t tlen = curr_line->len - curr_buf->cursor.col;
 		size_t toff = curr_line->len - tlen;
-		memcpy(newln->text, &(curr_buf->ln->text[toff]), tlen);
+		memmove(newln->text, &(curr_buf->ln->text[toff]), tlen);
 		newln->len = tlen;
 		curr_line->len -= tlen;
 	}
@@ -705,7 +705,7 @@ void join_lines(struct line *above, struct line *below)
 		ASSERT(above->text);
 		above->cap = newcap;
 	}
-	memcpy(&(above->text[above->len]), &below->text[0], below->len);
+	memmove(&(above->text[above->len]), &below->text[0], below->len);
 	above->len += below->len;
 
 	/* remove the below line from the dbly-linked list and destroy it */

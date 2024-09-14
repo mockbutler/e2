@@ -43,7 +43,7 @@ text * text_from_str(const char *s) {
   newcap = strlen(s);
   t = text_new(newcap);
   if (!t) return NULL;
-  memcpy(t->txt, s, newcap);
+  memmove(t->txt, s, newcap);
   t->used = newcap;
   return t;
 }
@@ -51,7 +51,7 @@ text * text_from_str(const char *s) {
 text * text_dup(text *t) {
   text *nt;
   nt = text_new(t->cap);
-  memcpy(nt->txt, t->txt, t->cap);
+  memmove(nt->txt, t->txt, t->cap);
   TERM(nt);
   return nt;
 }
@@ -78,7 +78,7 @@ void text_append_buf(text *t, char *b, size_t n) {
     rc = text_resize(t, t->cap + n - AVAIL(t));
     if (!rc) return;
   }
-  memcpy(&t->txt[t->used], b, n);
+  memmove(&t->txt[t->used], b, n);
   t->used += n;
   TERM(t);
 }
