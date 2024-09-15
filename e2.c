@@ -257,7 +257,7 @@ void status_update(struct editbuf* eb)
     char tmp[64];
     long len;
 
-    len = sprintf(tmp, "e2 %li:%li ", eb->cursor.line + 1, eb->cursor.col + 1);
+    len = snprintf(tmp, sizeof(tmp) - 1, "e2 %li:%li ", eb->cursor.line + 1, eb->cursor.col + 1);
     if (len < 12) {
         strpadleft(tmp, ' ', 12 - len);
     }
