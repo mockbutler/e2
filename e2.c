@@ -502,7 +502,7 @@ void add_line()
         curr_buf->bot = newln;
     }
 
-    curr_buf->lines++;
+    curr_buf->line_cnt++;
 }
 
 void save_editbuf(struct editbuf* eb)
@@ -636,7 +636,7 @@ struct editbuf* load(const char* path)
 
     eb = malloc(sizeof(struct editbuf));
     ASSERT(eb);
-    eb->lines = 0;
+    eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
     eb->file_path = NULL;
     eb->flags = 0;
@@ -682,14 +682,14 @@ struct editbuf* load(const char* path)
 
 void append_line(struct editbuf* eb, struct line* ln)
 {
-    if (eb->lines == 0) {
+    if (eb->line_cnt == 0) {
         eb->top = eb->bot = ln;
     } else {
         eb->bot->next = ln;
         ln->prev = eb->bot;
         eb->bot = ln;
     }
-    eb->lines++;
+    eb->line_cnt++;
 }
 
 void join_lines(struct line* above, struct line* below)
@@ -710,7 +710,7 @@ void join_lines(struct line* above, struct line* below)
         curr_buf->bot = above;
     remove_line(below);
     line_free(below);
-    curr_buf->lines--;
+    curr_buf->line_cnt--;
 
     curr_buf->ln = above;
     curr_buf->cursor.line--;
@@ -994,7 +994,7 @@ int cmd_copy(void)
     /* make full copies of all lines between the start and end line of
        the marked region.
      */
-    if (lcount > 2) {
+    if (lcount > 1) {
         int line;
         for (line = sreg.line + 1; line < ereg.line; line++) {
             cutln->next = ln_copy(currln);
@@ -1012,10 +1012,11 @@ RTN:
     int i;
     currln = g_cutting.text;
     for (i = 0; currln != NULL; i++) {
-        if (currln->len > 0)
-            t_print("%d: '%*s'\n", i, (int)currln->len, currln->text);
-        else
+        if (currln->len > 0) {
+            t_print("%d: '%.*s'\n", i, (int)currln->len, currln->text);
+        } else {
             t_print("%d: ''\n", i);
+        }
         currln = currln->next;
     }
     t_print("---- cutting end\n");
@@ -1034,10 +1035,6 @@ int cmd_paste(void)
         showmsg("Nothing to yank!");
     }
 
-    /* note: repeatedly setting curr_key calling plain_insert() is so
-       egregiously inefficient it is not to be considered.
-     */
-
     if (g_cutting.linecount == 1) {
         ln_ins_str_at(curr_buf->ln, curr_buf->cursor.col,
             g_cutting.text->text, g_cutting.text->len);
@@ -1046,10 +1043,19 @@ int cmd_paste(void)
         goto RTN;
     }
 
-    /* if the insertion is not at the beginning or the end of the
-       current line. split the current line. */
-    /* append each line in the cutting object to the current
-       line. moving the current line down. */
+    if (!eb_at_bol(curr_buf) && !eb_at_eol(curr_buf)) {
+        /* Split current line. */
+        ASSERT(!"Not implemented");
+    }
+
+    struct line *lcur = g_cutting.text;
+    append_line(curr_buf, lcur);
+    lcur = lcur->next;
+    int i;
+    for (i = 1; i < g_cutting.linecount; i++) {
+        append_line(curr_buf, lcur);
+        lcur = lcur->next;
+    }
 
 RTN:
     redraw();
@@ -1080,13 +1086,13 @@ int cmd_buf_beg(void)
 
 int cmd_buf_end(void)
 {
-    curr_buf->cursor.line = curr_buf->lines;
+    curr_buf->cursor.line = curr_buf->line_cnt;
     curr_buf->cursor.col = curr_buf->bot->len;
     curr_buf->ln = curr_buf->bot;
-    if (curr_buf->lines > EBWINSIZE)
+    if (curr_buf->line_cnt > EBWINSIZE)
         wmove(editwin, EBWINSIZE - 1, curr_buf->ln->len);
     else
-        wmove(editwin, curr_buf->lines, curr_buf->ln->len);
+        wmove(editwin, curr_buf->line_cnt, curr_buf->ln->len);
     redraw();
     return 1;
 }

@@ -11,7 +11,7 @@ struct editbuf* eb_alloc_empty()
 {
     struct editbuf* eb = malloc(sizeof(struct editbuf));
     ASSERT(eb);
-    eb->lines = 0;
+    eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
     eb->file_path = NULL;
     eb->flags = 0;
@@ -23,7 +23,7 @@ struct editbuf* eb_alloc_empty()
     eb->ln = line_alloc(COLS + 1);
     eb->top = eb->ln;
     eb->bot = eb->ln;
-    eb->lines = 1;
+    eb->line_cnt = 1;
     eb->next = eb->prev = NULL;
 
     return eb;
@@ -32,8 +32,9 @@ struct editbuf* eb_alloc_empty()
 void eb_free(struct editbuf* eb)
 {
     struct line* ln;
-    if (eb->file_path)
+    if (eb->file_path) {
         free(eb->file_path);
+    }
     ln = eb->top;
     while (ln) {
         struct line* trash = ln;
@@ -43,9 +44,10 @@ void eb_free(struct editbuf* eb)
     free(eb);
 }
 
+/** Returns non-zero if buffer is empty. */
 int eb_emptybuf(struct editbuf* eb)
 {
-    return (eb->lines == 1 && eb->ln->len == 0);
+    return (eb->line_cnt == 1 && eb->ln->len == 0);
 }
 
 int eb_at_bot(struct editbuf* eb)
@@ -59,8 +61,9 @@ size_t eb_calc_size(struct editbuf* eb)
     size_t size = 0;
     struct line* l = eb->top;
 
-    if (eb_emptybuf(eb))
+    if (eb_emptybuf(eb)) {
         return 0;
+    }
 
     while (l != NULL) {
         size += l->len;
@@ -70,10 +73,10 @@ size_t eb_calc_size(struct editbuf* eb)
     switch (eb->fmt) {
     case EB_FMT_MAC: /* fall thru */
     case EB_FMT_UNIX:
-        size += eb->lines;
+        size += eb->line_cnt;
         break;
     case EB_FMT_WIN:
-        size += eb->lines * 2;
+        size += eb->line_cnt * 2;
     }
 
     return size;

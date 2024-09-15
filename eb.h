@@ -11,12 +11,11 @@ enum {
     EB_MARKSET = 1 << 2,
 };
 
+/**
+ * Edit buffer.
+ */
 struct editbuf {
-    /* An editor buffer. Buffers typically correspond to a file. However
-     * newly created bufers may be "unassociated" until they are saved.
-     */
-
-    long lines; /* Number of lines in buffer. */
+    long line_cnt; /* Number of lines in buffer. */
 
     struct line* top; /* Top line. */
     struct line* bot; /* Bottom line. */
@@ -30,11 +29,9 @@ struct editbuf {
 
     /* Current cursor location. */
     struct line* ln; /* Current line. */
-    struct pos cursor; /* position in buffer of the user's
-                          cursor. known as the "point". */
+    struct pos cursor;
 
-    /* mlb: Editor buffers are to be stored in a circular
-     * doubly-linked list. */
+    /* Buffer list pointers. */
     struct editbuf* next;
     struct editbuf* prev;
 };

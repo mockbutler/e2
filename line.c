@@ -16,7 +16,7 @@ struct line* line_alloc(size_t cap)
        NULL ptrs.
      */
     if (cap == 0)
-        cap = 1;
+        cap = COLS;
 
     struct line* l = malloc(sizeof(struct line));
     ASSERT(l);
@@ -24,6 +24,7 @@ struct line* line_alloc(size_t cap)
     ASSERT(l->text);
     l->len = 0;
     l->cap = cap;
+    memset(l->text, 0, l->cap);
     l->next = l->prev = NULL;
     return l;
 }

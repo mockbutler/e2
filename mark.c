@@ -70,8 +70,6 @@ void draw_marked_region(void)
     if (pos_eq(&curr_buf->mark, &curr_buf->cursor))
         return;
 
-    /* handle edge cases */
-
     int sy, sx;
     getyx(editwin, sy, sx);
 

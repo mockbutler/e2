@@ -17,7 +17,7 @@ struct num {
 };
 
 #define container_of(p, t, m) \
-    ((t*)((void*)p - offsetof(t, m)))
+    ((t*)((uintptr_t)p - offsetof(t, m)))
 
 void list_append(struct list* head, struct list* elem)
 {
