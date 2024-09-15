@@ -59,8 +59,9 @@ int move_left(void)
             l = curr_buf->ln->prev;
             wmove(editwin, spos.line - 1, min((COLS - 1), l->len - 1));
             curr_buf->ln = l;
-            curr_buf->cursor.col = l->len - 1;
+            curr_buf->cursor.col = l->len;
             curr_buf->cursor.line--;
+            wmove(editwin, spos.line - 1, l->len);
         } else {
             /* trigger horizontal scroll left */
         }
