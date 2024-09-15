@@ -2,6 +2,6 @@
 #define SEARCH_H
 
 int searchfwd_cmd(void);
-int searchfwd(const char *str);
+int searchfwd(const char* str);
 
 #endif

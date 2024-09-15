@@ -1,5 +1,6 @@
 add_rules("mode.debug", "mode.release")
 set_languages("c11")
+set_policy("build.sanitizer.address", true)
 add_links("ncurses")
 add_requires("ncurses")
 add_defines("ENABLE_DRIBBLE")
