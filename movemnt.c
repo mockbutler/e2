@@ -57,7 +57,7 @@ int move_left(void)
         if (eb_at_bol(curr_buf)) {
             struct line* l;
             l = curr_buf->ln->prev;
-            wmove(editwin, spos.line - 1, min((COLS - 1), l->len - 1));
+            wmove(editwin, spos.line - 1, MIN((COLS - 1), l->len - 1));
             curr_buf->ln = l;
             curr_buf->cursor.col = l->len;
             curr_buf->cursor.line--;

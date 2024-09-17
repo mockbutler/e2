@@ -58,7 +58,7 @@ struct editbuf* load(const char* path);
 void append_line(struct editbuf* eb, struct line* ln);
 void join_lines(struct line* above, struct line* below);
 void strpadleft(char* s, char pad, unsigned cnt);
-void kill_line(int i);
+void erase_current_line(int i);
 int only_whitespace(long from, long to, struct line* ln);
 void showmsg(const char* fmt, ...);
 int plain_insert(void);
@@ -67,7 +67,7 @@ int exit_editor(void);
 
 int load_file(void);
 int minibuf_edit(const char* prompt, char* resp, long respmax);
-int linekill(void);
+int kill_line(void);
 void buf_stk_ins(struct editbuf* eb);
 void buf_stk_next(void);
 int buf_next(void);
@@ -97,15 +97,20 @@ int newline(void)
     return 1;
 }
 
-int linekill(void)
+int kill_line(void)
 {
-    if (curr_line->len >= 0) {
-        if (eb_at_bol(curr_buf) || only_whitespace(0, curr_buf->cursor.col, curr_buf->ln))
-            kill_line(1);
-        else
-            kill_line(0);
-        redraw();
+    if (curr_line->len == 0) {
+        /* Nothing to do. */
+        return 1;
     }
+    if (eb_at_bol(curr_buf)) {
+        eb_delete_current_line(curr_buf);
+        cur_move(0, MIN(curr_buf->ln->len, curr_buf->cursor.col));
+    } else {
+        /* Erase to end of line. */
+        ln_erase_rgn(curr_buf->ln, curr_buf->cursor.col, curr_buf->ln->len - curr_buf->cursor.col);
+    }
+    redraw();
     return 1;
 }
 
@@ -322,7 +327,7 @@ void setup_keymaps()
     map_def[CTRL_N] = move_down;
     map_def[CTRL_F] = move_right;
     map_def[CTRL_B] = move_left;
-    map_def[CTRL_K] = linekill;
+    map_def[CTRL_K] = kill_line;
     map_def[CTRL_G] = kbd_quit;
     map_def[CTRL_V] = page_down;
     map_def[CTRL_S] = searchfwd_cmd;
@@ -717,19 +722,6 @@ void strpadleft(char* s, char pad, unsigned cnt)
     *p = 0;
 }
 
-void kill_line(int whole)
-{
-    /* Erase from current position to the end of the line. */
-    if (whole) {
-        curr_line->text[0] = 0;
-        curr_line->len = 0;
-        curr_buf->cursor.col = 0;
-    } else {
-        curr_line->text[curr_buf->cursor.col] = 0;
-        curr_line->len = curr_buf->cursor.col;
-    }
-}
-
 int only_whitespace(long from, long to, struct line* ln)
 {
     long i;
@@ -922,8 +914,8 @@ int page_up(void)
         long sx, sy;
         getyx(editwin, sy, sx);
         t_print("cursor jumped: %li,%li -> %li,%li\n",
-            sy, sx, 0L, min(sx, ln->len));
-        cur_pos(0, min(sx, ln->len));
+            sy, sx, 0L, MIN(sx, ln->len));
+        cur_pos(0, MIN(sx, ln->len));
     }
     redraw();
     return 1;
@@ -1039,7 +1031,7 @@ int cmd_paste(void)
         ASSERT(!"Not implemented");
     }
 
-    struct line *lcur = g_cutting.text;
+    struct line* lcur = g_cutting.text;
     append_line(curr_buf, lcur);
     lcur = lcur->next;
     int i;

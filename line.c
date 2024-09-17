@@ -38,7 +38,7 @@ void ln_grow_cap(struct line* ln, size_t reqcap)
 struct line* ln_from_str(const char* s)
 {
     long len = strlen(s);
-    long cap = max(COLS, len + 1);
+    long cap = MAX(COLS, len + 1);
 
     struct line* ln = ln_alloc(cap);
 
@@ -138,4 +138,5 @@ void ln_erase_rgn(struct line *l, unsigned from, unsigned len)
         memmove(&l->text[from], &l->text[from + len], tail_len);
         memset(&l->text[from + tail_len], 0, l->len - tail_len);
     }
+    l->len -= len;
 }

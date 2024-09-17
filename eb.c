@@ -151,26 +151,22 @@ struct line* eb_move_up_nlines(struct editbuf* eb, int* num)
  */
 void eb_delete_current_line(struct editbuf *eb)
 {
-    struct line* todel = curr_line;
-    if (curr_line->prev) {
-        curr_line = curr_line->prev;
-        curr_line->next = todel->next;
-        if (todel->next) {
-            todel->next->prev = curr_line;
-        } else if (eb->bot == todel) {
-            eb->bot = curr_line;
+    struct line *todel = eb->ln;
+    if (todel->next != NULL) {
+        /* Delete current line bring up next line. */
+        eb->ln = todel->next;
+        eb->ln->prev = todel->prev;
+        if (eb->ln->prev->next != NULL) {
+            eb->ln->prev->next = eb->ln;
         }
-        ln_free(todel);
-        curr_buf->cursor.line--;
-    } else if (curr_line->next) {
-        curr_line = curr_line->next;
-        curr_line->next = todel->prev;
-        if (todel->prev) {
-            todel->prev->next = curr_line;
+        if (eb->ln->next != NULL) {
+            eb->ln->next->prev = eb->ln;
         }
         ln_free(todel);
     } else {
-        curr_line->text[0] = 0;
-        curr_line->len = 0;
+        ln_erase_rgn(curr_line, 0, curr_line->len);
     }
+
+    /* Snap cursor to end of line. */
+    eb->cursor.col = MIN(eb->ln->len, eb->cursor.col);
 }
