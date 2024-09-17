@@ -25,13 +25,14 @@ static inline bool ln_avail(struct line* ln)
     return ln->cap - ln->len;
 }
 
-struct line* line_alloc(size_t cap);
-void line_free(struct line* l);
-struct line* line_from_str(const char* s);
+struct line* ln_alloc(size_t cap);
+void ln_free(struct line* l);
+struct line* ln_from_str(const char* s);
 void ln_del_curr(void);
 
 struct line* ln_copy(struct line* l);
 struct line* ln_partial_copy(struct line* l, int start, int end);
 void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len);
+void ln_erase_rgn(struct line *l, unsigned from, unsigned to);
 
 #endif

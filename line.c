@@ -9,7 +9,7 @@
 #include "eb.h"
 #include "line.h"
 
-struct line* line_alloc(size_t cap)
+struct line* ln_alloc(size_t cap)
 {
     /* default to a capacity of one character. this allows efficient
        representation of empty lines without having to deal with crappy
@@ -35,12 +35,12 @@ void ln_grow_cap(struct line* ln, size_t reqcap)
     ln->cap += reqcap;
 }
 
-struct line* line_from_str(const char* s)
+struct line* ln_from_str(const char* s)
 {
     long len = strlen(s);
     long cap = max(COLS, len + 1);
 
-    struct line* ln = line_alloc(cap);
+    struct line* ln = ln_alloc(cap);
 
     memmove(ln->text, s, len);
     ln->text[len] = 0;
@@ -50,41 +50,17 @@ struct line* line_from_str(const char* s)
     return ln;
 }
 
-void line_free(struct line* l)
+void ln_free(struct line* l)
 {
     ASSERT(l);
     free(l->text);
     free(l);
 }
 
-void ln_del_curr(void)
-{
-    /* delete the current line. */
-
-    struct line* todie = curr_line;
-    if (curr_line->prev) {
-        curr_line = curr_line->prev;
-        curr_line->next = todie->next;
-        if (todie->next)
-            todie->next->prev = curr_line;
-        line_free(todie);
-        curr_buf->cursor.line--;
-    } else if (curr_line->next) {
-        curr_line = curr_line->next;
-        curr_line->next = todie->prev;
-        if (todie->prev)
-            todie->prev->next = curr_line;
-        line_free(todie);
-    } else {
-        curr_line->text[0] = 0;
-        curr_line->len = 0;
-    }
-}
-
 struct line* ln_copy(struct line* l)
 {
     ASSERT(l);
-    struct line* lcopy = line_alloc(l->len);
+    struct line* lcopy = ln_alloc(l->len);
     memmove(lcopy->text, l->text, l->len);
     lcopy->len = l->len;
     return lcopy;
@@ -97,7 +73,7 @@ struct line* ln_partial_copy(struct line* l, int start, int end)
     ASSERT(end <= l->len);
     ASSERT(start <= end);
 
-    struct line* lcopy = line_alloc(end - start);
+    struct line* lcopy = ln_alloc(end - start);
     ASSERT(lcopy);
     memmove(lcopy->text, &l->text[start], end - start);
     lcopy->len = end - start;
@@ -113,20 +89,23 @@ void ln_split(struct line* src, int where, struct line** front,
     ASSERT(front);
     ASSERT(back);
 
-    *front = line_alloc(where);
+    *front = ln_alloc(where);
     if (where > 0) {
         memmove((*front)->text, src->text, where);
         (*front)->len = where;
     }
 
     int len = src->len - where;
-    *back = line_alloc(len);
+    *back = ln_alloc(len);
     if (len > 0) {
         memmove((*back)->text, &src->text[where], len);
         (*back)->len = len;
     }
 }
 
+/*
+ * Insert string at position.
+ */
 void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len)
 {
     ASSERT(where <= l->len);
@@ -145,4 +124,18 @@ void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len)
     }
     memmove(l->text + where, s, len);
     l->len += len;
+}
+
+/*
+ * Erase region.
+ */
+void ln_erase_rgn(struct line *l, unsigned from, unsigned len)
+{
+    if ((from + len) == l->len) {
+        memset(&l->text[from], 0, len);
+    } else {
+        unsigned tail_len = l->len - (from + len);
+        memmove(&l->text[from], &l->text[from + len], tail_len);
+        memset(&l->text[from + tail_len], 0, l->len - tail_len);
+    }
 }

@@ -20,7 +20,7 @@ struct editbuf* eb_alloc_empty()
     eb->cursor.col = 0;
     eb->cursor.line = 0;
 
-    eb->ln = line_alloc(COLS + 1);
+    eb->ln = ln_alloc(COLS + 1);
     eb->top = eb->ln;
     eb->bot = eb->ln;
     eb->line_cnt = 1;
@@ -39,7 +39,7 @@ void eb_free(struct editbuf* eb)
     while (ln) {
         struct line* trash = ln;
         ln = ln->next;
-        line_free(trash);
+        ln_free(trash);
     }
     free(eb);
 }
@@ -124,6 +124,12 @@ struct line* eb_get_line_at(struct editbuf* eb, int num)
     return ln;
 }
 
+/*
+ * Return line above current line.
+ * @param eb Must not be null.
+ * @param[in, out] num Number of lines to move up, returns number of lines
+ *      moved up.
+ */
 struct line* eb_move_up_nlines(struct editbuf* eb, int* num)
 {
     ASSERT(*num && *num > 0);
@@ -138,4 +144,33 @@ struct line* eb_move_up_nlines(struct editbuf* eb, int* num)
 
     *num = n;
     return ln;
+}
+
+/*
+ * Delete current line.
+ */
+void eb_delete_current_line(struct editbuf *eb)
+{
+    struct line* todel = curr_line;
+    if (curr_line->prev) {
+        curr_line = curr_line->prev;
+        curr_line->next = todel->next;
+        if (todel->next) {
+            todel->next->prev = curr_line;
+        } else if (eb->bot == todel) {
+            eb->bot = curr_line;
+        }
+        ln_free(todel);
+        curr_buf->cursor.line--;
+    } else if (curr_line->next) {
+        curr_line = curr_line->next;
+        curr_line->next = todel->prev;
+        if (todel->prev) {
+            todel->prev->next = curr_line;
+        }
+        ln_free(todel);
+    } else {
+        curr_line->text[0] = 0;
+        curr_line->len = 0;
+    }
 }

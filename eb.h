@@ -55,5 +55,6 @@ int eb_buf_info_cmd(void);
 struct line* eb_find_first_visible_line(struct editbuf* eb);
 struct line* eb_get_line_at(struct editbuf* eb, int num);
 struct line* eb_move_up_nlines(struct editbuf* eb, int* num);
+void eb_delete_current_line(struct editbuf *eb);
 
 #endif

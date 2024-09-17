@@ -480,7 +480,7 @@ void add_line()
 {
     struct line* newln;
 
-    newln = line_alloc(COLS + 1);
+    newln = ln_alloc(COLS + 1);
     ASSERT(newln);
 
     newln->next = curr_buf->ln->next;
@@ -538,27 +538,18 @@ int backspace()
     if (curr_buf->cursor.col > 0) {
         move_left();
         wdelch(editwin);
-        if (curr_buf->cursor.col < (curr_line->len - 1)) {
-            /* overlapping memcopy must be supported */
-            char* to = &(curr_line->text[curr_buf->cursor.col]);
-            char* from = to + 1;
-            size_t len = curr_line->len - (curr_buf->cursor.col + 1);
-            memmove(to, from, len);
-        } else {
-            curr_line->text[curr_buf->cursor.col] = 0;
-        }
+        ln_erase_rgn(curr_line, curr_buf->cursor.col, 1);
         curr_line->len--;
     } else if (!eb_at_tob(curr_buf)) {
         if (ln_empty(curr_line)) {
-            ln_del_curr();
+            eb_delete_current_line(curr_buf);
             curr_buf->cursor.col = curr_buf->ln->len;
-            cur_move(-1, 0);
-            cur_posx(curr_line->len);
+            cur_move(-1, curr_line->len);
         } else {
             size_t len = curr_line->prev->len;
             join_lines(curr_line->prev, curr_line);
-            cur_move(-1, 0);
-            cur_posx(len);
+            curr_buf->cursor.col = len;
+            cur_move(-1, len);
         }
     }
 
@@ -658,9 +649,9 @@ struct editbuf* load(const char* path)
 
         buf[buflen - 1] = 0; /* remove newline */
         if (buflen - 1 == 0) {
-            ln = line_alloc(COLS);
+            ln = ln_alloc(COLS);
         } else {
-            ln = line_from_str(buf);
+            ln = ln_from_str(buf);
         }
         ASSERT(ln);
         append_line(eb, ln);
@@ -709,7 +700,7 @@ void join_lines(struct line* above, struct line* below)
     if (below == curr_buf->bot)
         curr_buf->bot = above;
     remove_line(below);
-    line_free(below);
+    ln_free(below);
     curr_buf->line_cnt--;
 
     curr_buf->ln = above;
