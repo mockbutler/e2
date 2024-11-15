@@ -1,19 +1,19 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 #include <string.h>
 
-#include "cursor.h"
-#include "debug.h"
-#include "e2.h"
-#include "eb.h"
-#include "line.h"
+#include "cursor.hh"
+#include "debug.hh"
+#include "e2.hh"
+#include "eb.hh"
+#include "line.hh"
 
-#include "search.h"
+#include "search.hh"
 
 #define SEARCH_MAX 127
 
 static char last_fwdsearch[SEARCH_MAX + 1] = { 0 };
 
-extern int minibuf_edit(const char* prompt, char* resp, unsigned respmax);
+extern int minibuf_edit(const char* prompt, char* resp, long respmax);
 
 int searchfwd_cmd(void)
 {

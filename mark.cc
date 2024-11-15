@@ -1,13 +1,13 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
 #include <string.h>
 
-#include "debug.h"
-#include "e2.h"
-#include "eb.h"
-#include "line.h"
+#include "debug.hh"
+#include "e2.hh"
+#include "eb.hh"
+#include "line.hh"
 
-#include "mark.h"
+#include "mark.hh"
 
 int mrk_set_cmd(void)
 {

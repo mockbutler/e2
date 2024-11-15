@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 #ifndef E2_H
 #define E2_H
 

@@ -1,15 +1,16 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
 #include <stdlib.h>
 
-#include "debug.h"
-#include "e2.h"
-#include "eb.h"
-#include "line.h"
+#include "debug.hh"
+#include "e2.hh"
+#include "eb.hh"
+#include "line.hh"
 
 struct editbuf* eb_alloc_empty()
 {
-    struct editbuf* eb = malloc(sizeof(struct editbuf));
+    //struct editbuf* eb = malloc(sizeof(struct editbuf));
+    struct editbuf* eb = new editbuf;
     ASSERT(eb);
     eb->line_cnt = 0;
     eb->top = eb->bot = NULL;

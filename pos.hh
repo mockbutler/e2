@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 #pragma once
 
 /* points are used to represent positions in the editing buffer. */

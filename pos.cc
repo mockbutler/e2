@@ -1,11 +1,11 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
 /* functions used to handle the point data type. */
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "pos.h"
+#include "pos.hh"
 
 int pos_eq(struct pos* p1, struct pos* p2)
 {
@@ -38,7 +38,7 @@ void pos_swap(struct pos* p1, struct pos* p2)
 struct pos* pos_dup(const struct pos* p)
 {
     struct pos* ptnew;
-    ptnew = malloc(sizeof(struct pos));
+    ptnew = new pos;
     memmove(ptnew, p, sizeof(struct pos));
     return ptnew;
 }

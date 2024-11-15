@@ -1,12 +1,12 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
-#include "debug.h"
-#include "e2.h"
-#include "eb.h"
-#include "editing.h"
-#include "line.h"
+#include "debug.hh"
+#include "e2.hh"
+#include "eb.hh"
+#include "editing.hh"
+#include "line.hh"
 
-#include "movemnt.h"
+#include "movemnt.hh"
 
 static void screenpos(struct pos* p)
 {

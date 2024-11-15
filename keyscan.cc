@@ -43,7 +43,7 @@ static void startup()
     nonl();
     raw();
     intrflush(stdscr, FALSE);
-    keypad(stdscr, FALSE);
+    keypad(stdscr, TRUE);
     meta(stdscr, FALSE);
 }
 

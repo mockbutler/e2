@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pos.h"
+#include "pos.hh"
 
 int cur_move(int y, int x);
 int cur_pos(int y, int x);

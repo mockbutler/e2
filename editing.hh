@@ -1,7 +1,7 @@
 #pragma once
 
-#include "eb.h"
-#include "line.h"
+#include "eb.hh"
+#include "line.hh"
 
 static inline bool eb_at_bol(struct editbuf* eb)
 {

@@ -1,8 +1,8 @@
 #ifndef EDITBUF_H
 #define EDITBUF_H
 
-#include "e2.h"
-#include "pos.h"
+#include "e2.hh"
+#include "pos.hh"
 
 /* Edit buffer status flags. */
 enum {

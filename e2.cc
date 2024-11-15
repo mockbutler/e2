@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
 #include <ctype.h>
 #include <curses.h>
@@ -6,18 +6,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdint.h>
 
-#include "cursor.h"
-#include "debug.h"
-#include "eb.h"
-#include "editing.h"
-#include "keycodes.h"
-#include "line.h"
-#include "mark.h"
-#include "movemnt.h"
-#include "search.h"
+#include "cursor.hh"
+#include "debug.hh"
+#include "eb.hh"
+#include "editing.hh"
+#include "keycodes.hh"
+#include "line.hh"
+#include "mark.hh"
+#include "movemnt.hh"
+#include "search.hh"
 
-#include "e2.h"
+#include "e2.hh"
 
 WINDOW* status = NULL;
 static char* sline = NULL;
@@ -246,7 +247,7 @@ void setup_status()
     wattron(status, A_REVERSE);
 
     sline_size = sizeof(char) * (COLS + 1);
-    sline = malloc(sline_size);
+    sline = (char *)malloc(sline_size);
     ASSERT(sline);
     memset(sline, ' ', sline_size);
     sline[sline_size - 1] = 0;
@@ -258,7 +259,7 @@ void setup_status()
 
 void status_update(struct editbuf* eb)
 {
-    char* path = (eb->file_path == NULL) ? "*unnamed*" : eb->file_path;
+    char* path = (eb->file_path == NULL) ? strdup("*unnamed*") : eb->file_path;
     char tmp[64];
     long len;
 
@@ -371,7 +372,7 @@ void insert(struct editbuf* eb, int ch)
     /* inserting this char will exceed the line capacity: so
      * reallocate the line */
     if (l->len >= l->cap) {
-        char* txt = realloc(eb->ln->text, eb->ln->cap * 2);
+        char* txt = (char *)realloc(eb->ln->text, eb->ln->cap * 2);
         ASSERT(txt);
         l->text = txt;
         l->cap *= 2;
@@ -517,7 +518,7 @@ void save_editbuf(struct editbuf* eb)
     struct line* l;
 
     /*ASSERT(eb->file_path != NULL); */
-    path = (eb->file_path == NULL) ? "tmp.txt" : eb->file_path;
+    path = (eb->file_path == NULL) ? strdup("tmp.txt") : eb->file_path;
 
     fh = fopen(path, "wb");
     if (!fh) {
@@ -630,7 +631,7 @@ struct editbuf* load(const char* path)
         return NULL;
     }
 
-    eb = malloc(sizeof(struct editbuf));
+    eb = (struct editbuf*) malloc(sizeof(struct editbuf));
     ASSERT(eb);
     eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
@@ -694,7 +695,7 @@ void join_lines(struct line* above, struct line* below)
     long space = above->cap - above->len;
     if (space < below->len) {
         size_t newcap = below->len - space;
-        above->text = realloc(above->text, newcap);
+        above->text = (char *)realloc(above->text, newcap);
         ASSERT(above->text);
         above->cap = newcap;
     }
@@ -744,7 +745,7 @@ void showmsg(const char* fmt, ...)
     va_start(ap, fmt);
     werase(cmdwin);
     wmove(cmdwin, 0, 0);
-    vwprintw(cmdwin, fmt, ap);
+    vw_printw(cmdwin, fmt, ap);
     va_end(ap);
     wrefresh(cmdwin);
 }
@@ -765,7 +766,9 @@ int exit_editor(void)
 int load_file(void)
 {
     char path[1024];
-    getcwd(path, 1024);
+    if (getcwd(path, 1024) == NULL) {
+        return -1;
+    }
 
     if (minibuf_edit("File file: ", path, 1023) != 0)
         return -1;
@@ -1023,7 +1026,8 @@ int cmd_paste(void)
             g_cutting.text->text, g_cutting.text->len);
         curr_buf->cursor.col += g_cutting.text->len;
         cur_move(0, g_cutting.text->len);
-        goto RTN;
+        redraw();
+        return 1;
     }
 
     if (!eb_at_bol(curr_buf) && !eb_at_eol(curr_buf)) {
@@ -1039,8 +1043,6 @@ int cmd_paste(void)
         append_line(curr_buf, lcur);
         lcur = lcur->next;
     }
-
-RTN:
     redraw();
     return 1;
 }

@@ -1,13 +1,13 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "cursor.h"
-#include "debug.h"
-#include "e2.h"
-#include "eb.h"
-#include "line.h"
+#include "cursor.hh"
+#include "debug.hh"
+#include "e2.hh"
+#include "eb.hh"
+#include "line.hh"
 
 struct line* ln_alloc(size_t cap)
 {
@@ -18,9 +18,9 @@ struct line* ln_alloc(size_t cap)
     if (cap == 0)
         cap = COLS;
 
-    struct line* l = malloc(sizeof(struct line));
+    struct line* l = new line;
     ASSERT(l);
-    l->text = malloc(cap);
+    l->text = (char *)malloc(cap);
     ASSERT(l->text);
     l->len = 0;
     l->cap = cap;
@@ -31,7 +31,7 @@ struct line* ln_alloc(size_t cap)
 
 void ln_grow_cap(struct line* ln, size_t reqcap)
 {
-    ln->text = realloc(ln->text, ln->cap + reqcap);
+    ln->text = (char *)realloc(ln->text, ln->cap + reqcap);
     ln->cap += reqcap;
 }
 

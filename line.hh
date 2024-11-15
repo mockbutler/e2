@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Marc Butler. */
+// Copyright (c) 2006 Marc Butler.
 #ifndef LINE_H
 #define LINE_H
 

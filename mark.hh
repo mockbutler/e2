@@ -1,4 +1,4 @@
-/* Copyright (c) 2006 Marc Butler */
+// Copyright (c) 2006 Marc Butler
 #ifndef MARK_H
 #define MARK_H
 

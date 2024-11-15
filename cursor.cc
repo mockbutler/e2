@@ -1,8 +1,8 @@
-/* Copyright (c) 2006 Marc Butler */
-#include "debug.h"
-#include "e2.h"
+// Copyright (c) 2006 Marc Butler
+#include "debug.hh"
+#include "e2.hh"
 
-#include "cursor.h"
+#include "cursor.hh"
 
 int cur_move(int y, int x)
 {
