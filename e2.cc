@@ -259,9 +259,12 @@ void setup_status()
 
 void status_update(struct editbuf* eb)
 {
-    char* path = (eb->file_path == NULL) ? strdup("*unnamed*") : eb->file_path;
     char tmp[64];
     long len;
+
+    if (eb->file_path.empty()) {
+        eb->file_path = "unnamed.txt";
+    }
 
     len = snprintf(tmp, sizeof(tmp) - 1, "e2 %li:%li ", eb->cursor.line + 1, eb->cursor.col + 1);
     if (len < 12) {
@@ -274,7 +277,7 @@ void status_update(struct editbuf* eb)
     wrefresh(status);
     mvwprintw(status, 0, 0, "%s [%c%c%c] %s", tmp,
         (eb->flags & EB_DIRTY) ? '*' : '-',
-        (eb->flags & EB_RDONLY) ? 'R' : '-', eb->fmt, path);
+        (eb->flags & EB_RDONLY) ? 'R' : '-', eb->fmt, eb->file_path.c_str());
     wrefresh(status);
 }
 
@@ -514,13 +517,13 @@ void add_line()
 void save_editbuf(struct editbuf* eb)
 {
     FILE* fh;
-    char* path;
     struct line* l;
 
-    /*ASSERT(eb->file_path != NULL); */
-    path = (eb->file_path == NULL) ? strdup("tmp.txt") : eb->file_path;
+    if (eb->file_path.empty()) {
+        eb->file_path = "unnamed.txt";
+    }
 
-    fh = fopen(path, "wb");
+    fh = fopen(eb->file_path.c_str(), "wb");
     if (!fh) {
         display_err("Error saving file!");
         return;
@@ -536,7 +539,7 @@ void save_editbuf(struct editbuf* eb)
     }
 
     fclose(fh);
-    showmsg("Saved file: %s", path);
+    showmsg("Saved file: %s", eb->file_path.c_str());
 }
 
 int backspace()
@@ -635,7 +638,6 @@ struct editbuf* load(const char* path)
     ASSERT(eb);
     eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
-    eb->file_path = NULL;
     eb->flags = 0;
     eb->fmt = 'U';
     eb->ln = NULL;

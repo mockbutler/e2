@@ -9,12 +9,10 @@
 
 struct editbuf* eb_alloc_empty()
 {
-    //struct editbuf* eb = malloc(sizeof(struct editbuf));
     struct editbuf* eb = new editbuf;
     ASSERT(eb);
     eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
-    eb->file_path = NULL;
     eb->flags = 0;
     eb->fmt = EB_FMT_UNIX;
     eb->ln = NULL;
@@ -33,9 +31,6 @@ struct editbuf* eb_alloc_empty()
 void eb_free(struct editbuf* eb)
 {
     struct line* ln;
-    if (eb->file_path) {
-        free(eb->file_path);
-    }
     ln = eb->top;
     while (ln) {
         struct line* trash = ln;
@@ -86,7 +81,7 @@ size_t eb_calc_size(struct editbuf* eb)
 int eb_buf_info_cmd(void)
 {
     showmsg("Size = %lu Path = %s\n",
-        eb_calc_size(curr_buf), curr_buf->file_path);
+        eb_calc_size(curr_buf), curr_buf->file_path.c_str());
     return 1;
 }
 

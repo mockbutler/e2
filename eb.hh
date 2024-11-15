@@ -1,5 +1,7 @@
-#ifndef EDITBUF_H
-#define EDITBUF_H
+#pragma once
+// Copyright (c) 2006 Marc Butler
+
+#include <string>
 
 #include "e2.hh"
 #include "pos.hh"
@@ -20,8 +22,7 @@ struct editbuf {
     struct line* top; /* Top line. */
     struct line* bot; /* Bottom line. */
 
-    char* file_path; /* NULL if no file associated with
-                      * buffer. */
+    std::string file_path;
     char flags; /* State flags. */
     char fmt; /* Line ending format. */
 
@@ -56,5 +57,3 @@ struct line* eb_find_first_visible_line(struct editbuf* eb);
 struct line* eb_get_line_at(struct editbuf* eb, int num);
 struct line* eb_move_up_nlines(struct editbuf* eb, int* num);
 void eb_delete_current_line(struct editbuf *eb);
-
-#endif
