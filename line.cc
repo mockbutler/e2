@@ -103,9 +103,6 @@ void ln_split(struct line* src, int where, struct line** front,
     }
 }
 
-/*
- * Insert string at position.
- */
 void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len)
 {
     ASSERT(where <= l->len);
@@ -126,9 +123,6 @@ void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len)
     l->len += len;
 }
 
-/*
- * Erase region.
- */
 void ln_erase_rgn(struct line *l, unsigned from, unsigned len)
 {
     if ((from + len) == l->len) {

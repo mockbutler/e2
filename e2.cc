@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <signal.h>
 
 #include "cursor.hh"
 #include "debug.hh"
@@ -165,6 +166,14 @@ int key_not_bound(void)
     return 1;
 }
 
+void abort_handler(int sig)
+{
+    clear();
+    refresh();
+    endwin();
+    exit(1);
+}
+
 int main(int argc, char** argv)
 {
     int key;
@@ -176,6 +185,7 @@ int main(int argc, char** argv)
 
     startup();
     atexit(shutdown);
+    signal(SIGABRT, abort_handler);
 
     /* install window resize handler */
     /* handle command line options if any */
@@ -548,7 +558,6 @@ int backspace()
         move_left();
         wdelch(editwin);
         ln_erase_rgn(curr_line, curr_buf->cursor.col, 1);
-        curr_line->len--;
     } else if (!eb_at_tob(curr_buf)) {
         if (ln_empty(curr_line)) {
             eb_delete_current_line(curr_buf);
