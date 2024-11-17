@@ -2,6 +2,8 @@
 #ifndef LINE_H
 #define LINE_H
 
+#include <cstring>
+
 struct line {
     /* Holds the contents of single line. No line ending information
      * is stored. */
@@ -13,12 +15,14 @@ struct line {
     /* Lines are stored in doubly-linked lists in edit buffers. */
     struct line* prev;
     struct line* next;
+
+    bool isEmpty() const
+    {
+        return len == 0;
+    }
 };
 
-static inline bool ln_empty(struct line* ln)
-{
-    return ln->len == 0;
-}
+#define ln_empty(l) ((l)->isEmpty())
 
 static inline bool ln_avail(struct line* ln)
 {
@@ -33,6 +37,6 @@ void ln_del_curr(void);
 struct line* ln_copy(struct line* l);
 struct line* ln_partial_copy(struct line* l, int start, int end);
 void ln_ins_str_at(struct line* l, unsigned where, const char* s, unsigned len);
-void ln_erase_rgn(struct line *l, unsigned from, unsigned to);
+void ln_erase_rgn(struct line* l, unsigned from, unsigned to);
 
 #endif

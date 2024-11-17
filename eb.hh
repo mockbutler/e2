@@ -2,20 +2,17 @@
 // Copyright (c) 2006 Marc Butler
 
 #include <string>
+#include <iosfwd>
 
 #include "e2.hh"
 #include "pos.hh"
 
-/* Edit buffer status flags. */
 enum {
-    EB_DIRTY = 1 << 0,
-    EB_RDONLY = 1 << 1,
-    EB_MARKSET = 1 << 2,
+    EB_DIRTY = 1 << 0,      // Modified.
+    EB_RDONLY = 1 << 1,     // Read only.
+    EB_MARKSET = 1 << 2,    // Mark is active.
 };
 
-/**
- * Edit buffer.
- */
 struct editbuf {
     long line_cnt; /* Number of lines in buffer. */
 
@@ -32,19 +29,26 @@ struct editbuf {
     struct line* ln; /* Current line. */
     struct pos cursor;
 
-    /* Buffer list pointers. */
-    struct editbuf* next;
-    struct editbuf* prev;
+    void insert(char);
+    void outputToStream(std::ostream&);
+
+    bool regionIsActive() const;
+    void regionMarkActive();
+    void regionMarkInactive();
+    bool isDirty();
+    void markDirty();
 };
 
-#define eb_rgn_marked(eb) ((eb)->flags & EB_MARKSET)
+#include "eb.inl"
+
+#define eb_rgn_marked(eb) (eb)->regionIsActive()
 
 static inline void eb_set_region_marked(struct editbuf* eb, bool yes)
 {
     if (yes)
-        eb->flags |= EB_MARKSET;
+        eb->regionMarkActive();
     else
-        eb->flags &= ~EB_MARKSET;
+        eb->regionMarkInactive();
 }
 
 struct editbuf* eb_alloc_empty();
@@ -56,4 +60,4 @@ int eb_buf_info_cmd(void);
 struct line* eb_find_first_visible_line(struct editbuf* eb);
 struct line* eb_get_line_at(struct editbuf* eb, int num);
 struct line* eb_move_up_nlines(struct editbuf* eb, int* num);
-void eb_delete_current_line(struct editbuf *eb);
+void eb_delete_current_line(struct editbuf* eb);

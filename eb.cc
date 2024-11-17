@@ -1,6 +1,7 @@
 // Copyright (c) 2006 Marc Butler
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <ostream>
 
 #include "debug.hh"
 #include "e2.hh"
@@ -23,7 +24,6 @@ struct editbuf* eb_alloc_empty()
     eb->top = eb->ln;
     eb->bot = eb->ln;
     eb->line_cnt = 1;
-    eb->next = eb->prev = NULL;
 
     return eb;
 }
@@ -40,7 +40,6 @@ void eb_free(struct editbuf* eb)
     free(eb);
 }
 
-/** Returns non-zero if buffer is empty. */
 int eb_emptybuf(struct editbuf* eb)
 {
     return (eb->line_cnt == 1 && eb->ln->len == 0);
@@ -120,12 +119,6 @@ struct line* eb_get_line_at(struct editbuf* eb, int num)
     return ln;
 }
 
-/*
- * Return line above current line.
- * @param eb Must not be null.
- * @param[in, out] num Number of lines to move up, returns number of lines
- *      moved up.
- */
 struct line* eb_move_up_nlines(struct editbuf* eb, int* num)
 {
     ASSERT(*num && *num > 0);
@@ -142,14 +135,11 @@ struct line* eb_move_up_nlines(struct editbuf* eb, int* num)
     return ln;
 }
 
-/*
- * Delete current line.
- */
-void eb_delete_current_line(struct editbuf *eb)
+void eb_delete_current_line(struct editbuf* eb)
 {
-    struct line *todel = eb->ln;
+    struct line* todel = eb->ln;
     if (todel->next != NULL) {
-        /* Delete current line bring up next line. */
+        // No next line.
         eb->ln = todel->next;
         eb->ln->prev = todel->prev;
         if (eb->ln->prev->next != NULL) {
@@ -163,6 +153,47 @@ void eb_delete_current_line(struct editbuf *eb)
         ln_erase_rgn(curr_line, 0, curr_line->len);
     }
 
-    /* Snap cursor to end of line. */
-    eb->cursor.col = MIN(eb->ln->len, eb->cursor.col);
+    // Snap cursor to end of line.
+    eb->cursor.col = std::min(eb->ln->len, eb->cursor.col);
+}
+
+void editbuf::outputToStream(std::ostream& stream)
+{
+    for (auto line = top; line != nullptr; line = line->next) {
+        if (line->len > 0) {
+            stream.write(line->text, line->len);
+        }
+        // TODO Does not handle different line endings.
+        stream.put('\n');
+    }
+}
+
+/// @brief Insert a character at the current location.
+/// @param c A printable character.
+void editbuf::insert(char c)
+{
+    struct line* l;
+
+    l = ln;
+    ASSERT(cursor.col <= l->len);
+
+    /* inserting this char will exceed the line capacity: so
+     * reallocate the line */
+    if (l->len >= l->cap) {
+        char* txt = (char *)realloc(ln->text, ln->cap * 2);
+        ASSERT(txt);
+        l->text = txt;
+        l->cap *= 2;
+    }
+
+    if (cursor.col < l->len) {
+        size_t len = l->len - cursor.col;
+        memmove(&l->text[cursor.col + 1], &l->text[cursor.col],
+            len);
+        l->text[cursor.col] = (char)c;
+    } else {
+        l->text[cursor.col] = (char)c;
+    }
+    l->len += 1;
+    cursor.col += 1;
 }

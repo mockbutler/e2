@@ -38,7 +38,7 @@ void ln_grow_cap(struct line* ln, size_t reqcap)
 struct line* ln_from_str(const char* s)
 {
     long len = strlen(s);
-    long cap = MAX(COLS, len + 1);
+    long cap = std::max<long>(COLS, len + 1);
 
     struct line* ln = ln_alloc(cap);
 

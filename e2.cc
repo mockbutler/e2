@@ -1,13 +1,17 @@
 // Copyright (c) 2006 Marc Butler
 
+#include <algorithm>
+#include <fstream>
+#include <list>
+
 #include <ctype.h>
 #include <curses.h>
+#include <signal.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdint.h>
-#include <signal.h>
 
 #include "cursor.hh"
 #include "debug.hh"
@@ -39,6 +43,8 @@ action map_esc[ACTION_MAP_SIZE] = {};
 action map_ctrlx[ACTION_MAP_SIZE] = {};
 action map_ctrlc[ACTION_MAP_SIZE] = {};
 
+std::list<editbuf*> buffers;
+
 void startup();
 void shutdown();
 void setup_status();
@@ -60,7 +66,6 @@ struct editbuf* load(const char* path);
 void append_line(struct editbuf* eb, struct line* ln);
 void join_lines(struct line* above, struct line* below);
 void strpadleft(char* s, char pad, unsigned cnt);
-void erase_current_line(int i);
 int only_whitespace(long from, long to, struct line* ln);
 void showmsg(const char* fmt, ...);
 int plain_insert(void);
@@ -95,21 +100,19 @@ int newline(void)
     move_down();
     move_bol();
     redraw();
-    flag_dirty();
+    curr_buf->markDirty();
     return 1;
 }
 
 int kill_line(void)
 {
     if (curr_line->len == 0) {
-        /* Nothing to do. */
         return 1;
     }
     if (eb_at_bol(curr_buf)) {
         eb_delete_current_line(curr_buf);
-        cur_move(0, MIN(curr_buf->ln->len, curr_buf->cursor.col));
+        cur_move(0, std::min(curr_buf->ln->len, curr_buf->cursor.col));
     } else {
-        /* Erase to end of line. */
         ln_erase_rgn(curr_buf->ln, curr_buf->cursor.col, curr_buf->ln->len - curr_buf->cursor.col);
     }
     redraw();
@@ -119,13 +122,13 @@ int kill_line(void)
 int savebuffer(void)
 {
     save_editbuf(curr_buf);
-    curr_buf->flags &= ~EB_DIRTY;
+    curr_buf->regionMarkInactive();
     return 1;
 }
 
 int kbd_quit(void)
 {
-    curr_buf->flags &= ~EB_MARKSET;
+    curr_buf->regionMarkInactive();
     redrawwin(editwin);
     redraw();
     return 1;
@@ -187,20 +190,19 @@ int main(int argc, char** argv)
     atexit(shutdown);
     signal(SIGABRT, abort_handler);
 
-    /* install window resize handler */
-    /* handle command line options if any */
-    /* open any files if necessary */
+    // TODO Install window resize handler.
 
-    if (argc == 2) {
+    if (argc == 1) {
+        curr_buf = eb_alloc_empty();
+    } else {
         struct editbuf* eb = load(argv[1]);
         if (eb == NULL) {
             printf("Error loading file: %s\n", argv[1]);
             exit(1);
         }
-        buf_stk_ins(eb);
-    } else {
-        buf_stk_ins(eb_alloc_empty());
+        curr_buf = eb;
     }
+    buf_stk_ins(curr_buf);
 
     setup_status();
     setup_editwin();
@@ -257,7 +259,7 @@ void setup_status()
     wattron(status, A_REVERSE);
 
     sline_size = sizeof(char) * (COLS + 1);
-    sline = (char *)malloc(sline_size);
+    sline = (char*)malloc(sline_size);
     ASSERT(sline);
     memset(sline, ' ', sline_size);
     sline[sline_size - 1] = 0;
@@ -286,7 +288,7 @@ void status_update(struct editbuf* eb)
     mvwprintw(status, 0, 0, "%s", sline);
     wrefresh(status);
     mvwprintw(status, 0, 0, "%s [%c%c%c] %s", tmp,
-        (eb->flags & EB_DIRTY) ? '*' : '-',
+        (eb->isDirty()) ? '*' : '-',
         (eb->flags & EB_RDONLY) ? 'R' : '-', eb->fmt, eb->file_path.c_str());
     wrefresh(status);
 }
@@ -377,33 +379,7 @@ void display_err(const char* msg)
 void insert(struct editbuf* eb, int ch)
 {
     int x, y;
-    struct line* l;
-
-    l = eb->ln;
-    ASSERT(eb->cursor.col <= l->len);
-
-    /* inserting this char will exceed the line capacity: so
-     * reallocate the line */
-    if (l->len >= l->cap) {
-        char* txt = (char *)realloc(eb->ln->text, eb->ln->cap * 2);
-        ASSERT(txt);
-        l->text = txt;
-        l->cap *= 2;
-    }
-
-    if (eb->cursor.col < l->len) {
-        size_t len = l->len - eb->cursor.col;
-        /* memcpy must accomodate overlapping moves */
-        memmove(&l->text[eb->cursor.col + 1], &l->text[eb->cursor.col],
-            len);
-        l->text[eb->cursor.col] = (char)ch;
-    } else {
-        /* special case: append the char to the line */
-        l->text[eb->cursor.col] = (char)ch;
-    }
-    l->len += 1;
-    eb->cursor.col += 1;
-
+    eb->insert(ch);
     getyx(editwin, y, x);
     /* if (x + 1 > COLS) trigger horizontal scrolling */
     winsch(editwin, ch);
@@ -526,29 +502,11 @@ void add_line()
 
 void save_editbuf(struct editbuf* eb)
 {
-    FILE* fh;
-    struct line* l;
-
     if (eb->file_path.empty()) {
         eb->file_path = "unnamed.txt";
     }
-
-    fh = fopen(eb->file_path.c_str(), "wb");
-    if (!fh) {
-        display_err("Error saving file!");
-        return;
-    }
-
-    l = eb->top;
-    if (l->len > 0) {
-        while (l) {
-            fwrite(l->text, 1, l->len, fh);
-            fputc('\n', fh);
-            l = l->next;
-        }
-    }
-
-    fclose(fh);
+    std::ofstream out(eb->file_path);
+    eb->outputToStream(out);
     showmsg("Saved file: %s", eb->file_path.c_str());
 }
 
@@ -643,7 +601,7 @@ struct editbuf* load(const char* path)
         return NULL;
     }
 
-    eb = (struct editbuf*) malloc(sizeof(struct editbuf));
+    eb = (struct editbuf*)malloc(sizeof(struct editbuf));
     ASSERT(eb);
     eb->line_cnt = 0;
     eb->top = eb->bot = NULL;
@@ -706,7 +664,7 @@ void join_lines(struct line* above, struct line* below)
     long space = above->cap - above->len;
     if (space < below->len) {
         size_t newcap = below->len - space;
-        above->text = (char *)realloc(above->text, newcap);
+        above->text = (char*)realloc(above->text, newcap);
         ASSERT(above->text);
         above->cap = newcap;
     }
@@ -743,10 +701,11 @@ int only_whitespace(long from, long to, struct line* ln)
     ASSERT(to < ln->len);
     ASSERT(from < to);
 
-    for (i = from; i < to; i++)
-        if (ln->text[i] != ' ')
+    for (i = from; i < to; i++) {
+        if (ln->text[i] != ' ') {
             return 0;
-
+        }
+    }
     return 1;
 }
 
@@ -764,7 +723,7 @@ void showmsg(const char* fmt, ...)
 int plain_insert(void)
 {
     insert(curr_buf, curr_key);
-    curr_buf->flags |= EB_DIRTY;
+    curr_buf->markDirty();
     return 1;
 }
 
@@ -793,6 +752,7 @@ int load_file(void)
         }
 
         buf_stk_ins(ebnew);
+        curr_buf = ebnew;
         clear();
         refresh();
         status_update(curr_buf);
@@ -856,24 +816,17 @@ int minibuf_edit(const char* prompt, char* resp, long respmax)
 
 void buf_stk_ins(struct editbuf* eb)
 {
-    ASSERT(eb);
-    eb->next = curr_buf;
-    if (curr_buf)
-        curr_buf->prev = eb;
-    curr_buf = eb;
+    buffers.push_back(eb);
 }
 
 void buf_stk_next(void)
 {
-    if (!curr_buf->next) {
-        /* wrap-around by searching through the list to the first buffer
-         */
-        while (curr_buf->prev) {
-            curr_buf = curr_buf->prev;
-        }
-    } else {
-        curr_buf = curr_buf->next;
+    auto pos = std::find(buffers.begin(), buffers.end(), curr_buf);
+    ++pos;
+    if (pos == buffers.end()) {
+        pos = buffers.begin();
     }
+    curr_buf = *pos;
 }
 
 int buf_next(void)
@@ -892,8 +845,6 @@ int page_down(void)
      */
     int max, i;
     struct line* ln;
-
-    /* mlb: jump out early if at end of buffer */
 
     max = EBWINSIZE - 1;
     ln = curr_buf->ln;
@@ -928,8 +879,8 @@ int page_up(void)
         long sx, sy;
         getyx(editwin, sy, sx);
         t_print("cursor jumped: %li,%li -> %li,%li\n",
-            sy, sx, 0L, MIN(sx, ln->len));
-        cur_pos(0, MIN(sx, ln->len));
+            sy, sx, 0L, std::min(sx, ln->len));
+        cur_pos(0, std::min(sx, ln->len));
     }
     redraw();
     return 1;
